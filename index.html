@@ -530,7 +530,7 @@ tbody tr:hover .row-actions { opacity: 1; }
   border: 1px solid var(--border2);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   width: 100%;
-  max-width: 560px;
+  max-width: 620px;
   max-height: 92vh;
   overflow-y: auto;
   box-shadow: 0 -12px 40px rgba(0,0,0,0.5);
@@ -617,6 +617,106 @@ tbody tr:hover .row-actions { opacity: 1; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 .modal { animation: fadeIn 0.18s ease; }
 tbody tr { animation: fadeIn 0.1s ease both; }
+
+/* ── CL badge ── */
+.cl-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: var(--mono);
+  background: rgba(167,139,250,0.1);
+  color: #c4b5fd;
+  border: 1px solid rgba(167,139,250,0.25);
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.cl-indicator:hover { background: rgba(167,139,250,0.2); }
+
+/* ── Modal tabs ── */
+.modal-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  padding: 0 18px;
+  gap: 2px;
+}
+.modal-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.12s, border-color 0.12s;
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+}
+.modal-tab:hover { color: var(--text); }
+.modal-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.modal-tab-panel { display: none; }
+.modal-tab-panel.active { display: flex; flex-direction: column; gap: 13px; }
+
+/* ── Cover letter viewer modal ── */
+.cl-modal {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  width: 100%;
+  max-width: 680px;
+  max-height: 92vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 -12px 40px rgba(0,0,0,0.5);
+}
+.cl-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+}
+.cl-letter-display {
+  font-family: 'Georgia', serif;
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: 24px 24px;
+  min-height: 200px;
+}
+.cl-empty-msg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: var(--muted);
+  gap: 10px;
+  text-align: center;
+}
+.cl-empty-msg i { font-size: 36px; opacity: 0.35; }
+.cl-char-count {
+  font-size: 11px;
+  color: var(--muted);
+  font-family: var(--mono);
+  text-align: right;
+  padding: 4px 0 0;
+}
+
+@media (min-width: 641px) {
+  .cl-modal {
+    border-radius: var(--radius-lg);
+    max-height: 88vh;
+  }
+}
 
 /* ── Tooltip ── */
 [data-tip] { position: relative; }
@@ -880,11 +980,12 @@ tbody tr { animation: fadeIn 0.1s ease both; }
   <div class="ctx-item" data-action="status-offer"><span class="badge badge-offer"><span class="badge-dot"></span> Offer</span></div>
   <div class="ctx-item" data-action="status-rejected"><span class="badge badge-rejected"><span class="badge-dot"></span> Rejected</span></div>
   <div class="ctx-sep"></div>
+  <div class="ctx-item" data-action="view-cl"><i class="ti ti-writing" aria-hidden="true" style="color:var(--purple)"></i> Cover Letter</div>
   <div class="ctx-item" data-action="edit"><i class="ti ti-edit" aria-hidden="true"></i> Edit row</div>
   <div class="ctx-item danger" data-action="delete"><i class="ti ti-trash" aria-hidden="true"></i> Delete row</div>
 </div>
 
-<!-- Modal -->
+<!-- Edit/Add Modal -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-handle"></div>
@@ -921,11 +1022,45 @@ tbody tr { animation: fadeIn 0.1s ease both; }
         <div class="form-row"><label>Location</label><input id="f-location" placeholder="e.g. Remote / NYC"/></div>
       </div>
       <div class="form-row"><label>Job URL</label><input id="f-url" placeholder="https://…" inputmode="url"/></div>
-      <div class="form-row"><label>Notes</label><textarea id="f-notes" rows="3" placeholder="Interview prep, contacts, deadlines…"></textarea></div>
+      <div class="form-row"><label>Notes</label><textarea id="f-notes" rows="2" placeholder="Interview prep, contacts, deadlines…"></textarea></div>
+      <div style="height:1px;background:var(--border);margin:2px 0"></div>
+      <div class="form-row">
+        <label style="display:flex;align-items:center;gap:6px">
+          <i class="ti ti-writing" style="color:var(--purple);font-size:13px" aria-hidden="true"></i>
+          Cover Letter
+        </label>
+        <textarea id="f-coverletter" rows="8" placeholder="Dear Hiring Manager,&#10;&#10;Write or paste your cover letter here — it'll be saved with this application."></textarea>
+        <div class="cl-char-count" id="cl-char-count">0 characters</div>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn" id="modalCancel">Cancel</button>
       <button class="btn btn-primary" id="modalSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Cover Letter Viewer Modal -->
+<div class="modal-overlay" id="clOverlay">
+  <div class="cl-modal" role="dialog" aria-modal="true" aria-labelledby="clModalTitle">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+        <div class="modal-title" id="clModalTitle">Cover Letter</div>
+        <div style="font-size:11px;color:var(--muted);font-family:var(--mono)" id="clModalSub"></div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+        <button class="btn btn-sm" id="clCopyBtn" data-tip="Copy to clipboard">
+          <i class="ti ti-copy" aria-hidden="true"></i><span class="cl-copy-label"> Copy</span>
+        </button>
+        <button class="btn btn-sm btn-primary" id="clEditBtn">
+          <i class="ti ti-edit" aria-hidden="true"></i><span class="cl-edit-label"> Edit</span>
+        </button>
+        <button class="btn btn-ghost btn-sm" id="clClose"><i class="ti ti-x" aria-hidden="true"></i></button>
+      </div>
+    </div>
+    <div class="cl-modal-body">
+      <div id="clContent"></div>
     </div>
   </div>
 </div>
@@ -1022,9 +1157,15 @@ function renderTable() {
       <td class="mono">${fmtDate(a.date) || '<span style="color:var(--muted)">—</span>'}</td>
       <td class="mono" style="color:var(--success)">${esc(a.salary) || '<span style="color:var(--muted);font-style:italic">—</span>'}</td>
       <td style="color:var(--muted)">${esc(a.location) || '<span style="font-style:italic">—</span>'}</td>
-      <td style="color:var(--muted)" title="${esc(a.notes)}">${esc(a.notes) || '<span style="font-style:italic">—</span>'}</td>
+      <td style="color:var(--muted)" title="${esc(a.notes)}">
+        <span style="display:inline-flex;align-items:center;gap:6px;max-width:100%">
+          <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${esc(a.notes) || '<span style="font-style:italic">—</span>'}</span>
+          ${a.coverLetter ? `<span class="cl-indicator" data-id="${a.id}" data-action="view-cl" title="View cover letter"><i class="ti ti-writing" style="font-size:10px"></i> CL</span>` : ''}
+        </span>
+      </td>
       <td>
         <div class="row-actions">
+          ${a.coverLetter ? `<button class="row-act-btn" data-id="${a.id}" data-action="view-cl" aria-label="View cover letter" title="Cover Letter" style="color:var(--purple)"><i class="ti ti-writing" aria-hidden="true"></i></button>` : ''}
           <button class="row-act-btn" data-id="${a.id}" data-action="edit" aria-label="Edit" title="Edit">
             <i class="ti ti-edit" aria-hidden="true"></i>
           </button>
@@ -1072,6 +1213,7 @@ function renderCards() {
         <button class="btn btn-sm" data-id="${a.id}" data-action="edit">
           <i class="ti ti-edit" aria-hidden="true"></i> Edit
         </button>
+        ${a.coverLetter ? `<button class="btn btn-sm" data-id="${a.id}" data-action="view-cl" style="color:var(--purple);border-color:rgba(167,139,250,0.3);background:rgba(167,139,250,0.08)"><i class="ti ti-writing" aria-hidden="true"></i> CL</button>` : ''}
         <button class="btn btn-sm" data-id="${a.id}" data-action="status-cycle">
           <i class="ti ti-refresh" aria-hidden="true"></i> Status
         </button>
@@ -1098,6 +1240,7 @@ function renderCards() {
       const id = btn.dataset.id, action = btn.dataset.action;
       if (action === 'edit') openModal(id);
       if (action === 'delete') deleteApp(id);
+      if (action === 'view-cl') openCLModal(id);
       if (action === 'status-cycle') {
         const a = apps.find(x => x.id === id);
         if (!a) return;
@@ -1133,6 +1276,7 @@ function bindRowEvents() {
       const id = btn.dataset.id, action = btn.dataset.action;
       if (action === 'edit') openModal(id);
       if (action === 'delete') deleteApp(id);
+      if (action === 'view-cl') openCLModal(id);
     });
   });
 
@@ -1140,6 +1284,13 @@ function bindRowEvents() {
     td.addEventListener('click', e => {
       e.stopPropagation();
       startInlineEdit(td, td.dataset.id, td.dataset.col);
+    });
+  });
+
+  document.querySelectorAll('.cl-indicator[data-action="view-cl"]').forEach(el => {
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      openCLModal(el.dataset.id);
     });
   });
 }
@@ -1183,7 +1334,8 @@ document.getElementById('ctxMenu').addEventListener('click', e => {
   if (action.startsWith('status-')) {
     const a = apps.find(x => x.id === ctxId);
     if (a) { a.status = action.replace('status-', ''); save(); render(); }
-  } else if (action === 'edit') { openModal(ctxId); }
+  } else if (action === 'view-cl') { openCLModal(ctxId); }
+  else if (action === 'edit') { openModal(ctxId); }
   else if (action === 'delete') { deleteApp(ctxId); }
   closeCtx();
 });
@@ -1203,21 +1355,67 @@ let editingId = null;
 function openModal(id) {
   editingId = id || null;
   const a = id ? apps.find(x => x.id === id)
-    : { id: uid(), company:'', role:'', status:'applied', priority:'medium', date: new Date().toISOString().slice(0,10), salary:'', location:'', notes:'', url:'' };
+    : { id: uid(), company:'', role:'', status:'applied', priority:'medium', date: new Date().toISOString().slice(0,10), salary:'', location:'', notes:'', url:'', coverLetter:'' };
   document.getElementById('modalTitle').textContent = id ? 'Edit application' : 'New application';
-  document.getElementById('f-company').value  = a.company || '';
-  document.getElementById('f-role').value     = a.role || '';
-  document.getElementById('f-status').value   = a.status || 'applied';
-  document.getElementById('f-priority').value = a.priority || 'medium';
-  document.getElementById('f-date').value     = a.date || '';
-  document.getElementById('f-salary').value   = a.salary || '';
-  document.getElementById('f-location').value = a.location || '';
-  document.getElementById('f-url').value      = a.url || '';
-  document.getElementById('f-notes').value    = a.notes || '';
+  document.getElementById('f-company').value     = a.company || '';
+  document.getElementById('f-role').value        = a.role || '';
+  document.getElementById('f-status').value      = a.status || 'applied';
+  document.getElementById('f-priority').value    = a.priority || 'medium';
+  document.getElementById('f-date').value        = a.date || '';
+  document.getElementById('f-salary').value      = a.salary || '';
+  document.getElementById('f-location').value    = a.location || '';
+  document.getElementById('f-url').value         = a.url || '';
+  document.getElementById('f-notes').value       = a.notes || '';
+  document.getElementById('f-coverletter').value = a.coverLetter || '';
+  const n = (a.coverLetter || '').length;
+  document.getElementById('cl-char-count').textContent = n ? `${n.toLocaleString()} character${n !== 1 ? 's' : ''}` : '0 characters';
   document.getElementById('modalOverlay').classList.add('open');
   setTimeout(() => document.getElementById('f-company').focus(), 100);
 }
 function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+
+/* ── Cover Letter Viewer ── */
+let clViewingId = null;
+function openCLModal(id) {
+  clViewingId = id;
+  const a = apps.find(x => x.id === id); if (!a) return;
+  document.getElementById('clModalTitle').textContent = a.company ? `Cover Letter — ${a.company}` : 'Cover Letter';
+  document.getElementById('clModalSub').textContent = a.role || '';
+  const content = document.getElementById('clContent');
+  if (a.coverLetter && a.coverLetter.trim()) {
+    content.innerHTML = `<div class="cl-letter-display">${esc(a.coverLetter)}</div>`;
+  } else {
+    content.innerHTML = `<div class="cl-empty-msg"><i class="ti ti-writing" aria-hidden="true"></i><p>No cover letter written yet.<br/>Click Edit to add one.</p></div>`;
+  }
+  document.getElementById('clOverlay').classList.add('open');
+}
+function closeCLModal() { document.getElementById('clOverlay').classList.remove('open'); }
+
+document.getElementById('clClose').addEventListener('click', closeCLModal);
+document.getElementById('clOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeCLModal(); });
+
+document.getElementById('clEditBtn').addEventListener('click', () => {
+  closeCLModal();
+  openModal(clViewingId);
+});
+
+document.getElementById('clCopyBtn').addEventListener('click', () => {
+  const a = apps.find(x => x.id === clViewingId);
+  if (!a || !a.coverLetter) return;
+  navigator.clipboard.writeText(a.coverLetter).then(() => {
+    const btn = document.getElementById('clCopyBtn');
+    const label = btn.querySelector('.cl-copy-label');
+    const icon = btn.querySelector('i');
+    label.textContent = ' Copied!';
+    icon.className = 'ti ti-check';
+    btn.style.color = 'var(--success)';
+    setTimeout(() => {
+      label.textContent = ' Copy';
+      icon.className = 'ti ti-copy';
+      btn.style.color = '';
+    }, 2000);
+  });
+});
 
 document.getElementById('modalSave').addEventListener('click', () => {
   const company = document.getElementById('f-company').value.trim();
@@ -1232,6 +1430,7 @@ document.getElementById('modalSave').addEventListener('click', () => {
     location: document.getElementById('f-location').value.trim(),
     url:      document.getElementById('f-url').value.trim(),
     notes:    document.getElementById('f-notes').value.trim(),
+    coverLetter: document.getElementById('f-coverletter').value.trim(),
   };
   if (editingId) { const i = apps.findIndex(x => x.id === editingId); if (i >= 0) apps[i] = a; }
   else apps.push(a);
@@ -1439,9 +1638,14 @@ document.getElementById('exportPDF').addEventListener('click', () => {
 
 /* ── Keyboard shortcuts ── */
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeModal(); closeCtx(); }
+  if (e.key === 'Escape') { closeModal(); closeCtx(); closeCLModal(); }
   if ((e.metaKey || e.ctrlKey) && e.key === 'n') { e.preventDefault(); openModal(null); }
   if ((e.metaKey || e.ctrlKey) && e.key === 'f') { e.preventDefault(); document.getElementById('searchInput').focus(); }
+});
+
+document.getElementById('f-coverletter').addEventListener('input', function() {
+  const n = this.value.length;
+  document.getElementById('cl-char-count').textContent = n ? `${n.toLocaleString()} character${n !== 1 ? 's' : ''}` : '0 characters';
 });
 
 load();
