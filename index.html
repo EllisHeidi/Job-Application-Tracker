@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Job Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.0.0/tabler-icons.min.css"/>
+<style>
+:root {
+  --bg:        #0f1117;
+  --surface:   #181c27;
+  --surface2:  #1e2334;
+  --border:    #2a3048;
+  --border2:   #353d58;
+  --text:      #e8eaf0;
+  --muted:     #7a82a0;
+  --accent:    #4f8ef7;
+  --accent2:   #3a6fd4;
+  --success:   #3ecf8e;
+  --warning:   #f7a940;
+  --danger:    #f76f6f;
+  --purple:    #a78bfa;
+  --radius:    8px;
+  --radius-lg: 12px;
+  --mono:      'DM Mono', monospace;
+  --sans:      'DM Sans', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ── Layout ── */
+.shell {
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  min-height: 100vh;
+}
+
+/* ── Top bar ── */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.brand-icon {
+  width: 32px; height: 32px;
+  background: var(--accent);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff;
+  font-size: 16px;
+}
+.topbar-right { display: flex; align-items: center; gap: 8px; }
+
+/* ── Stat strip ── */
+.stats-strip {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.stat-cell {
+  padding: 14px 20px;
+  border-right: 1px solid var(--border);
+}
+.stat-cell:last-child { border-right: none; }
+.stat-label {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 4px;
+  font-family: var(--mono);
+}
+.stat-num {
+  font-size: 24px;
+  font-weight: 600;
+  font-family: var(--mono);
+  letter-spacing: -0.02em;
+}
+.stat-num.accent  { color: var(--accent); }
+.stat-num.success { color: var(--success); }
+.stat-num.warning { color: var(--warning); }
+.stat-num.purple  { color: var(--purple); }
+
+/* ── Main area ── */
+.main {
+  display: flex;
+  flex-direction: column;
+  padding: 20px 24px;
+  gap: 14px;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* ── Toolbar ── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+  max-width: 320px;
+}
+.search-wrap i {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: 15px;
+  pointer-events: none;
+}
+.search-wrap input {
+  width: 100%;
+  padding: 8px 12px 8px 34px;
+}
+.toolbar-right { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+
+/* ── Inputs & Buttons ── */
+input, select, textarea {
+  font-family: var(--sans);
+  font-size: 13px;
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 7px 10px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(79,142,247,0.12);
+}
+select { cursor: pointer; }
+textarea { resize: vertical; font-size: 13px; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, transform 0.08s;
+  white-space: nowrap;
+}
+.btn:hover { background: var(--border); border-color: var(--border2); }
+.btn:active { transform: scale(0.97); }
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.btn-primary:hover { background: var(--accent2); border-color: var(--accent2); }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted);
+}
+.btn-ghost:hover { background: var(--surface2); color: var(--text); border-color: var(--border); }
+.btn-danger { background: rgba(247,111,111,0.12); border-color: rgba(247,111,111,0.3); color: var(--danger); }
+.btn-danger:hover { background: rgba(247,111,111,0.22); }
+
+/* ── Table ── */
+.table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.table-scroll { overflow-x: auto; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 13px;
+}
+col.c-num    { width: 48px; }
+col.c-co     { width: 160px; }
+col.c-role   { width: 200px; }
+col.c-status { width: 110px; }
+col.c-pri    { width: 90px; }
+col.c-date   { width: 100px; }
+col.c-sal    { width: 130px; }
+col.c-loc    { width: 120px; }
+col.c-notes  { width: auto; }
+col.c-act    { width: 72px; }
+
+thead tr {
+  background: var(--surface2);
+  border-bottom: 2px solid var(--border);
+}
+th {
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  font-family: var(--mono);
+  transition: color 0.12s;
+}
+th:hover { color: var(--text); }
+th.sorted { color: var(--accent); }
+th.num-col { cursor: default; }
+th.act-col { cursor: default; }
+
+tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+}
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--surface2); }
+tbody tr.selected { background: rgba(79,142,247,0.08); }
+tbody tr.selected:hover { background: rgba(79,142,247,0.13); }
+
+td {
+  padding: 10px 12px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+td.num-col {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+  background: var(--surface2);
+  border-right: 1px solid var(--border);
+}
+td.muted { color: var(--muted); font-style: italic; }
+td.mono { font-family: var(--mono); font-size: 12px; }
+td.clickable { cursor: pointer; }
+td.clickable:hover { text-decoration: underline; text-decoration-color: var(--muted); }
+
+.inline-edit-input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(79,142,247,0.15);
+}
+
+/* ── Badges ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: var(--mono);
+  letter-spacing: 0.03em;
+  border: 1px solid transparent;
+}
+.badge-dot { width: 5px; height: 5px; border-radius: 50%; }
+.badge-wishlist  { background: rgba(167,139,250,0.1); color: #c4b5fd; border-color: rgba(167,139,250,0.25); }
+.badge-wishlist .badge-dot  { background: #a78bfa; }
+.badge-applied   { background: rgba(79,142,247,0.1); color: #93b8fb; border-color: rgba(79,142,247,0.25); }
+.badge-applied .badge-dot   { background: #4f8ef7; }
+.badge-interview { background: rgba(247,169,64,0.1); color: #fbbf69; border-color: rgba(247,169,64,0.25); }
+.badge-interview .badge-dot { background: #f7a940; }
+.badge-offer     { background: rgba(62,207,142,0.1); color: #6ee7b7; border-color: rgba(62,207,142,0.25); }
+.badge-offer .badge-dot     { background: #3ecf8e; }
+.badge-rejected  { background: rgba(247,111,111,0.1); color: #fca5a5; border-color: rgba(247,111,111,0.25); }
+.badge-rejected .badge-dot  { background: #f76f6f; }
+
+.pri-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-family: var(--mono);
+}
+.pri-dot { width: 7px; height: 7px; border-radius: 50%; }
+.pri-high .pri-dot   { background: var(--danger); }
+.pri-medium .pri-dot { background: var(--warning); }
+.pri-low .pri-dot    { background: var(--success); }
+.pri-high   { color: #fca5a5; }
+.pri-medium { color: #fbbf69; }
+.pri-low    { color: #6ee7b7; }
+
+/* ── Row actions ── */
+.row-actions { display: flex; gap: 2px; opacity: 0; transition: opacity 0.1s; }
+tbody tr:hover .row-actions { opacity: 1; }
+.row-act-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 5px;
+  border-radius: 5px;
+  color: var(--muted);
+  font-size: 14px;
+  transition: background 0.1s, color 0.1s;
+}
+.row-act-btn:hover { background: var(--border); color: var(--text); }
+.row-act-btn.del:hover { background: rgba(247,111,111,0.15); color: var(--danger); }
+
+/* ── Add row strip ── */
+.add-strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+  border-top: 1px solid var(--border);
+  transition: background 0.1s, color 0.1s;
+  background: var(--surface);
+}
+.add-strip:hover { background: var(--surface2); color: var(--text); }
+
+/* ── Empty state ── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: var(--muted);
+  gap: 12px;
+}
+.empty-state i { font-size: 40px; opacity: 0.4; }
+.empty-state p { font-size: 14px; }
+
+/* ── Context menu ── */
+#ctxMenu {
+  position: fixed;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  padding: 6px;
+  min-width: 180px;
+  z-index: 999;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  display: none;
+}
+#ctxMenu.open { display: block; }
+.ctx-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--text);
+  transition: background 0.1s;
+}
+.ctx-item:hover { background: var(--border); }
+.ctx-item.danger { color: var(--danger); }
+.ctx-item.danger:hover { background: rgba(247,111,111,0.1); }
+.ctx-sep { height: 1px; background: var(--border); margin: 4px 0; }
+.ctx-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--muted);
+  padding: 4px 10px 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-family: var(--mono);
+}
+
+/* ── Modal ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  padding: 20px;
+  backdrop-filter: blur(2px);
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  width: 500px;
+  max-width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-title { font-size: 15px; font-weight: 600; }
+.modal-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; }
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 14px 20px 18px;
+  border-top: 1px solid var(--border);
+}
+.form-row { display: flex; flex-direction: column; gap: 5px; }
+.form-row label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-family: var(--mono);
+}
+.form-row input, .form-row select, .form-row textarea { width: 100%; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+/* ── Formula bar ── */
+.formula-bar {
+  display: flex;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.formula-ref {
+  padding: 6px 12px;
+  background: var(--surface2);
+  color: var(--accent);
+  border-right: 1px solid var(--border);
+  min-width: 64px;
+  text-align: center;
+  font-weight: 500;
+}
+.formula-fx {
+  padding: 6px 10px;
+  color: var(--muted);
+  border-right: 1px solid var(--border);
+  font-style: italic;
+}
+.formula-val {
+  padding: 6px 12px;
+  color: var(--muted);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--surface); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+/* ── Animations ── */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.modal { animation: fadeIn 0.15s ease; }
+tbody tr { animation: fadeIn 0.1s ease both; }
+
+/* ── Tooltip ── */
+[data-tip] { position: relative; }
+[data-tip]:hover::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 5px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 100;
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-icon"><i class="ti ti-briefcase" aria-hidden="true"></i></div>
+      Job Tracker
+    </div>
+    <div class="topbar-right">
+      <button class="btn btn-sm" id="exportBtn" data-tip="Export as CSV">
+        <i class="ti ti-download" aria-hidden="true"></i> Export CSV
+      </button>
+      <button class="btn btn-sm btn-primary" id="addBtn">
+        <i class="ti ti-plus" aria-hidden="true"></i> Add application
+      </button>
+    </div>
+  </header>
+
+  <!-- Stat strip -->
+  <div class="stats-strip" id="statsStrip"></div>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- Formula bar -->
+    <div class="formula-bar">
+      <div class="formula-ref" id="cellRef">—</div>
+      <div class="formula-fx">fx</div>
+      <div class="formula-val" id="formulaVal">Select a row to inspect</div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="search-wrap">
+        <i class="ti ti-search" aria-hidden="true"></i>
+        <input type="text" id="searchInput" placeholder="Search company, role, notes…" />
+      </div>
+      <select id="filterStatus" style="width:130px">
+        <option value="">All statuses</option>
+        <option value="wishlist">Wishlist</option>
+        <option value="applied">Applied</option>
+        <option value="interview">Interview</option>
+        <option value="offer">Offer</option>
+        <option value="rejected">Rejected</option>
+      </select>
+      <select id="filterPriority" style="width:120px">
+        <option value="">All priorities</option>
+        <option value="high">High priority</option>
+        <option value="medium">Medium priority</option>
+        <option value="low">Low priority</option>
+      </select>
+      <div class="toolbar-right">
+        <span style="font-size:12px;color:var(--muted);font-family:var(--mono)" id="rowCount">—</span>
+        <button class="btn btn-sm btn-ghost" id="clearFiltersBtn">
+          <i class="ti ti-filter-off" aria-hidden="true"></i> Clear
+        </button>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table id="mainTable">
+          <colgroup>
+            <col class="c-num"/><col class="c-co"/><col class="c-role"/>
+            <col class="c-status"/><col class="c-pri"/><col class="c-date"/>
+            <col class="c-sal"/><col class="c-loc"/><col class="c-notes"/>
+            <col class="c-act"/>
+          </colgroup>
+          <thead>
+            <tr>
+              <th class="num-col">#</th>
+              <th data-col="company">Company <span class="sort-icon" id="si-company"></span></th>
+              <th data-col="role">Role <span class="sort-icon" id="si-role"></span></th>
+              <th data-col="status">Status <span class="sort-icon" id="si-status"></span></th>
+              <th data-col="priority">Priority <span class="sort-icon" id="si-priority"></span></th>
+              <th data-col="date">Date <span class="sort-icon" id="si-date"></span></th>
+              <th data-col="salary">Salary <span class="sort-icon" id="si-salary"></span></th>
+              <th data-col="location">Location <span class="sort-icon" id="si-location"></span></th>
+              <th data-col="notes">Notes <span class="sort-icon" id="si-notes"></span></th>
+              <th class="act-col"></th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <div id="emptyState" class="empty-state" style="display:none">
+          <i class="ti ti-database-off" aria-hidden="true"></i>
+          <p>No applications match your filters.</p>
+          <button class="btn btn-sm" id="emptyAddBtn"><i class="ti ti-plus" aria-hidden="true"></i> Add one now</button>
+        </div>
+      </div>
+      <div class="add-strip" id="addStrip">
+        <i class="ti ti-plus" aria-hidden="true" style="font-size:14px"></i>
+        Add a new application…
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Context menu -->
+<div id="ctxMenu" role="menu">
+  <div class="ctx-label">Change status</div>
+  <div class="ctx-item" data-action="status-wishlist"><span class="badge badge-wishlist"><span class="badge-dot"></span> Wishlist</span></div>
+  <div class="ctx-item" data-action="status-applied"><span class="badge badge-applied"><span class="badge-dot"></span> Applied</span></div>
+  <div class="ctx-item" data-action="status-interview"><span class="badge badge-interview"><span class="badge-dot"></span> Interview</span></div>
+  <div class="ctx-item" data-action="status-offer"><span class="badge badge-offer"><span class="badge-dot"></span> Offer</span></div>
+  <div class="ctx-item" data-action="status-rejected"><span class="badge badge-rejected"><span class="badge-dot"></span> Rejected</span></div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" data-action="edit"><i class="ti ti-edit" aria-hidden="true"></i> Edit row</div>
+  <div class="ctx-item danger" data-action="delete"><i class="ti ti-trash" aria-hidden="true"></i> Delete row</div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">New application</div>
+      <button class="btn btn-ghost btn-sm" id="modalClose"><i class="ti ti-x" aria-hidden="true"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-row"><label>Company *</label><input id="f-company" placeholder="e.g. Stripe"/></div>
+        <div class="form-row"><label>Role *</label><input id="f-role" placeholder="e.g. Frontend Engineer"/></div>
+      </div>
+      <div class="form-grid-3">
+        <div class="form-row"><label>Status</label>
+          <select id="f-status">
+            <option value="wishlist">Wishlist</option>
+            <option value="applied" selected>Applied</option>
+            <option value="interview">Interview</option>
+            <option value="offer">Offer</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+        <div class="form-row"><label>Priority</label>
+          <select id="f-priority">
+            <option value="high">High</option>
+            <option value="medium" selected>Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+        <div class="form-row"><label>Date</label><input type="date" id="f-date"/></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-row"><label>Salary / range</label><input id="f-salary" placeholder="e.g. $140k–$180k"/></div>
+        <div class="form-row"><label>Location</label><input id="f-location" placeholder="e.g. Remote / NYC"/></div>
+      </div>
+      <div class="form-row"><label>Job URL</label><input id="f-url" placeholder="https://…"/></div>
+      <div class="form-row"><label>Notes</label><textarea id="f-notes" rows="3" placeholder="Interview prep, contacts, deadlines…"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" id="modalCancel">Cancel</button>
+      <button class="btn btn-primary" id="modalSave">Save application</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'jt_apps_v2';
+const COLS = ['company','role','status','priority','date','salary','location','notes'];
+let apps = [], sortCol = 'date', sortDir = -1, selectedId = null, ctxId = null;
+
+/* ── Storage ── */
+function load() {
+  try { const r = localStorage.getItem(STORAGE_KEY); if (r) apps = JSON.parse(r); } catch(e) {}
+  if (!apps.length) { apps = sampleData(); save(); }
+  render();
+}
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(apps)); } catch(e) {}
+}
+
+/* ── Helpers ── */
+function uid() { return Math.random().toString(36).slice(2, 10); }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmtDate(d) {
+  if (!d) return '';
+  const dt = new Date(d + 'T00:00:00');
+  return dt.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'2-digit' });
+}
+
+/* ── Sample data ── */
+function sampleData() {
+  return [
+    { id:uid(), company:'Stripe', role:'Senior Frontend Engineer', status:'interview', priority:'high', date:'2026-05-10', salary:'$160k–$200k', location:'Remote', notes:'Technical screen May 28', url:'' },
+    { id:uid(), company:'Linear', role:'Product Engineer', status:'applied', priority:'high', date:'2026-05-15', salary:'$140k–$180k', location:'Remote', notes:'', url:'' },
+    { id:uid(), company:'Vercel', role:'DX Engineer', status:'wishlist', priority:'medium', date:'2026-05-18', salary:'', location:'Remote', notes:'Posted 2 days ago', url:'' },
+    { id:uid(), company:'Shopify', role:'Full Stack Developer', status:'rejected', priority:'medium', date:'2026-04-28', salary:'$130k', location:'Toronto', notes:'', url:'' },
+    { id:uid(), company:'Figma', role:'Software Engineer', status:'offer', priority:'high', date:'2026-05-01', salary:'$180k', location:'San Francisco', notes:'Deadline May 30', url:'' },
+    { id:uid(), company:'Notion', role:'Growth Engineer', status:'applied', priority:'low', date:'2026-05-12', salary:'$120k', location:'NYC', notes:'', url:'' },
+  ];
+}
+
+/* ── Filter & sort ── */
+function getVisible() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const fs = document.getElementById('filterStatus').value;
+  const fp = document.getElementById('filterPriority').value;
+  return apps
+    .filter(a =>
+      (!q || [a.company, a.role, a.notes, a.location].some(v => v.toLowerCase().includes(q))) &&
+      (!fs || a.status === fs) &&
+      (!fp || a.priority === fp)
+    )
+    .sort((a, b) => {
+      let va = a[sortCol]||'', vb = b[sortCol]||'';
+      if (sortCol === 'priority') { const o={high:0,medium:1,low:2}; va=o[va]; vb=o[vb]; }
+      return va < vb ? -sortDir : va > vb ? sortDir : 0;
+    });
+}
+
+/* ── Render ── */
+function render() { renderStats(); renderTable(); }
+
+function renderStats() {
+  const t = apps.length;
+  const i = apps.filter(a => a.status === 'interview').length;
+  const o = apps.filter(a => a.status === 'offer').length;
+  const r = apps.filter(a => a.status === 'rejected').length;
+  const rate = t ? Math.round(o / t * 100) : 0;
+  document.getElementById('statsStrip').innerHTML = `
+    <div class="stat-cell"><div class="stat-label">Total</div><div class="stat-num">${t}</div></div>
+    <div class="stat-cell"><div class="stat-label">Interviewing</div><div class="stat-num accent">${i}</div></div>
+    <div class="stat-cell"><div class="stat-label">Offers</div><div class="stat-num success">${o}</div></div>
+    <div class="stat-cell"><div class="stat-label">Rejected</div><div class="stat-num" style="color:var(--muted)">${r}</div></div>
+    <div class="stat-cell"><div class="stat-label">Offer rate</div><div class="stat-num ${rate>=20?'success':rate>=10?'warning':'danger'}">${rate}%</div></div>
+  `;
+}
+
+function renderTable() {
+  const visible = getVisible();
+  document.getElementById('rowCount').textContent = `${visible.length} row${visible.length!==1?'s':''}`;
+
+  COLS.forEach(c => {
+    const el = document.getElementById('si-' + c);
+    if (el) el.textContent = sortCol === c ? (sortDir === 1 ? ' ↑' : ' ↓') : '';
+  });
+  document.querySelectorAll('th[data-col]').forEach(th => {
+    th.classList.toggle('sorted', th.dataset.col === sortCol);
+  });
+
+  const tbody = document.getElementById('tbody');
+  const empty = document.getElementById('emptyState');
+
+  if (!visible.length) {
+    tbody.innerHTML = '';
+    empty.style.display = 'flex';
+    return;
+  }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = visible.map((a, idx) => `
+    <tr data-id="${a.id}" class="${selectedId === a.id ? 'selected' : ''}" style="animation-delay:${idx * 0.02}s">
+      <td class="num-col">${idx + 1}</td>
+      <td data-col="company" data-id="${a.id}" class="clickable" style="font-weight:500">${esc(a.company) || '<span style="color:var(--muted);font-weight:400">—</span>'}</td>
+      <td data-col="role" data-id="${a.id}" class="clickable" style="color:var(--muted)">${esc(a.role) || '<span style="font-style:italic">—</span>'}</td>
+      <td><span class="badge badge-${a.status}"><span class="badge-dot"></span>${a.status}</span></td>
+      <td><span class="pri-tag pri-${a.priority}"><span class="pri-dot"></span>${a.priority}</span></td>
+      <td class="mono">${fmtDate(a.date) || '<span style="color:var(--muted)">—</span>'}</td>
+      <td class="mono" style="color:var(--success)">${esc(a.salary) || '<span style="color:var(--muted);font-style:italic">—</span>'}</td>
+      <td style="color:var(--muted)">${esc(a.location) || '<span style="font-style:italic">—</span>'}</td>
+      <td style="color:var(--muted)" title="${esc(a.notes)}">${esc(a.notes) || '<span style="font-style:italic">—</span>'}</td>
+      <td>
+        <div class="row-actions">
+          <button class="row-act-btn" data-id="${a.id}" data-action="edit" aria-label="Edit row" title="Edit">
+            <i class="ti ti-edit" aria-hidden="true"></i>
+          </button>
+          <button class="row-act-btn del" data-id="${a.id}" data-action="delete" aria-label="Delete row" title="Delete">
+            <i class="ti ti-trash" aria-hidden="true"></i>
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+
+  bindRowEvents();
+}
+
+function bindRowEvents() {
+  document.querySelectorAll('#tbody tr').forEach(row => {
+    const id = row.dataset.id;
+
+    row.addEventListener('click', e => {
+      if (e.target.closest('.row-act-btn') || e.target.closest('td.clickable')) return;
+      selectedId = id;
+      updateFormulaBar(id);
+      document.querySelectorAll('#tbody tr').forEach(r => r.classList.toggle('selected', r.dataset.id === id));
+    });
+
+    row.addEventListener('dblclick', e => {
+      const td = e.target.closest('td[data-col]');
+      if (!td) { openModal(id); return; }
+      if (['status','priority'].includes(td.dataset.col)) { openModal(id); return; }
+      startInlineEdit(td, id, td.dataset.col);
+    });
+
+    row.addEventListener('contextmenu', e => { e.preventDefault(); showCtx(e, id); });
+  });
+
+  document.querySelectorAll('.row-act-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const id = btn.dataset.id, action = btn.dataset.action;
+      if (action === 'edit') openModal(id);
+      if (action === 'delete') deleteApp(id);
+    });
+  });
+
+  document.querySelectorAll('td.clickable').forEach(td => {
+    td.addEventListener('click', e => {
+      e.stopPropagation();
+      startInlineEdit(td, td.dataset.id, td.dataset.col);
+    });
+  });
+}
+
+function updateFormulaBar(id) {
+  const a = apps.find(x => x.id === id);
+  const idx = getVisible().findIndex(x => x.id === id);
+  if (!a) return;
+  document.getElementById('cellRef').textContent = `R${idx + 2}`;
+  document.getElementById('formulaVal').textContent = `="${a.company}" | status: ${a.status} | priority: ${a.priority} | applied: ${a.date || 'n/a'}`;
+}
+
+/* ── Inline edit ── */
+function startInlineEdit(td, id, col) {
+  const a = apps.find(x => x.id === id); if (!a) return;
+  const orig = a[col] || '';
+  td.innerHTML = `<input class="inline-edit-input" value="${esc(orig)}" />`;
+  const inp = td.querySelector('input');
+  inp.focus(); inp.select();
+  function commit() {
+    a[col] = inp.value.trim();
+    save(); render();
+  }
+  inp.addEventListener('blur', commit);
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { inp.blur(); }
+    if (e.key === 'Escape') { render(); }
+  });
+}
+
+/* ── Context menu ── */
+function showCtx(e, id) {
+  ctxId = id;
+  const menu = document.getElementById('ctxMenu');
+  menu.classList.add('open');
+  const x = Math.min(e.clientX, window.innerWidth - 200);
+  const y = Math.min(e.clientY, window.innerHeight - 260);
+  menu.style.left = x + 'px';
+  menu.style.top = y + 'px';
+}
+
+document.getElementById('ctxMenu').addEventListener('click', e => {
+  const item = e.target.closest('[data-action]'); if (!item) return;
+  const action = item.dataset.action;
+  if (action.startsWith('status-')) {
+    const a = apps.find(x => x.id === ctxId);
+    if (a) { a.status = action.replace('status-', ''); save(); render(); }
+  } else if (action === 'edit') { openModal(ctxId); }
+  else if (action === 'delete') { deleteApp(ctxId); }
+  closeCtx();
+});
+
+function closeCtx() { document.getElementById('ctxMenu').classList.remove('open'); }
+document.addEventListener('click', closeCtx);
+
+/* ── Delete ── */
+function deleteApp(id) {
+  if (!confirm('Delete this application?')) return;
+  apps = apps.filter(a => a.id !== id);
+  if (selectedId === id) selectedId = null;
+  save(); render();
+}
+
+/* ── Modal ── */
+let editingId = null;
+
+function openModal(id) {
+  editingId = id || null;
+  const a = id ? apps.find(x => x.id === id)
+    : { id: uid(), company:'', role:'', status:'applied', priority:'medium', date: new Date().toISOString().slice(0,10), salary:'', location:'', notes:'', url:'' };
+  document.getElementById('modalTitle').textContent = id ? 'Edit application' : 'New application';
+  document.getElementById('f-company').value  = a.company || '';
+  document.getElementById('f-role').value     = a.role || '';
+  document.getElementById('f-status').value   = a.status || 'applied';
+  document.getElementById('f-priority').value = a.priority || 'medium';
+  document.getElementById('f-date').value     = a.date || '';
+  document.getElementById('f-salary').value   = a.salary || '';
+  document.getElementById('f-location').value = a.location || '';
+  document.getElementById('f-url').value      = a.url || '';
+  document.getElementById('f-notes').value    = a.notes || '';
+  document.getElementById('modalOverlay').classList.add('open');
+  document.getElementById('f-company').focus();
+}
+
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+
+document.getElementById('modalSave').addEventListener('click', () => {
+  const company = document.getElementById('f-company').value.trim();
+  const role    = document.getElementById('f-role').value.trim();
+  if (!company || !role) { alert('Company and role are required.'); return; }
+  const a = {
+    id: editingId || uid(),
+    company, role,
+    status:   document.getElementById('f-status').value,
+    priority: document.getElementById('f-priority').value,
+    date:     document.getElementById('f-date').value,
+    salary:   document.getElementById('f-salary').value.trim(),
+    location: document.getElementById('f-location').value.trim(),
+    url:      document.getElementById('f-url').value.trim(),
+    notes:    document.getElementById('f-notes').value.trim(),
+  };
+  if (editingId) { const i = apps.findIndex(x => x.id === editingId); if (i >= 0) apps[i] = a; }
+  else apps.push(a);
+  closeModal(); save(); render();
+});
+
+document.getElementById('modalCancel').addEventListener('click', closeModal);
+document.getElementById('modalClose').addEventListener('click', closeModal);
+document.getElementById('modalOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+
+/* ── Sorting ── */
+document.querySelectorAll('th[data-col]').forEach(th => {
+  th.addEventListener('click', () => {
+    const c = th.dataset.col;
+    if (sortCol === c) sortDir *= -1; else { sortCol = c; sortDir = 1; }
+    render();
+  });
+});
+
+/* ── Filters ── */
+document.getElementById('searchInput').addEventListener('input', render);
+document.getElementById('filterStatus').addEventListener('change', render);
+document.getElementById('filterPriority').addEventListener('change', render);
+document.getElementById('clearFiltersBtn').addEventListener('click', () => {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('filterStatus').value = '';
+  document.getElementById('filterPriority').value = '';
+  render();
+});
+
+/* ── Add buttons ── */
+document.getElementById('addBtn').addEventListener('click', () => openModal(null));
+document.getElementById('addStrip').addEventListener('click', () => openModal(null));
+document.getElementById('emptyAddBtn').addEventListener('click', () => openModal(null));
+
+/* ── Export ── */
+document.getElementById('exportBtn').addEventListener('click', () => {
+  const headers = ['Company','Role','Status','Priority','Date','Salary','Location','Notes','URL'];
+  const rows = apps.map(a => [a.company,a.role,a.status,a.priority,a.date,a.salary,a.location,a.notes,a.url]
+    .map(v => `"${(v||'').replace(/"/g,'""')}"`).join(','));
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url; link.download = 'job-applications.csv'; link.click();
+  URL.revokeObjectURL(url);
+});
+
+/* ── Keyboard shortcuts ── */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeModal(); closeCtx(); }
+  if ((e.metaKey || e.ctrlKey) && e.key === 'n') { e.preventDefault(); openModal(null); }
+  if ((e.metaKey || e.ctrlKey) && e.key === 'f') {
+    e.preventDefault(); document.getElementById('searchInput').focus();
+  }
+});
+
+load();
+</script>
+</body>
+</html>
