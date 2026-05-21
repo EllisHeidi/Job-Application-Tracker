@@ -222,34 +222,6 @@ textarea { resize: vertical; font-size: 13px; }
 .btn-danger { background: rgba(247,111,111,0.12); border-color: rgba(247,111,111,0.3); color: var(--danger); }
 .btn-danger:hover { background: rgba(247,111,111,0.22); }
 
-/* ── Export dropdown ── */
-.export-wrap { position: relative; }
-.export-menu {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  background: var(--surface2);
-  border: 1px solid var(--border2);
-  border-radius: var(--radius-lg);
-  padding: 6px;
-  min-width: 160px;
-  z-index: 300;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-  display: none;
-}
-.export-menu.open { display: block; }
-.export-item {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 8px 10px;
-  border-radius: 6px;
-  font-size: 13px;
-  cursor: pointer;
-  color: var(--text);
-  transition: background 0.1s;
-}
-.export-item:hover { background: var(--border); }
 
 /* ── Table ── */
 .table-wrap {
@@ -778,7 +750,6 @@ tbody tr { animation: fadeIn 0.1s ease both; }
   /* Topbar */
   .topbar { padding: 10px 14px; }
   .brand { font-size: 14px; }
-  .topbar-right .export-wrap { display: none; } /* hide export in topbar, use card actions */
 
   /* Stats – horizontal scroll */
   .stats-strip {
@@ -854,16 +825,9 @@ tbody tr { animation: fadeIn 0.1s ease both; }
       Job Tracker
     </div>
     <div class="topbar-right">
-      <div class="export-wrap" id="exportWrap">
-        <button class="btn btn-sm" id="exportToggle" data-tip="Export">
-          <i class="ti ti-download" aria-hidden="true"></i> Export
-          <i class="ti ti-chevron-down" aria-hidden="true" style="font-size:11px;margin-left:-2px"></i>
+      <button class="btn btn-sm" id="exportPDF">
+          <i class="ti ti-file-type-pdf" aria-hidden="true"></i> Export PDF
         </button>
-        <div class="export-menu" id="exportMenu">
-          <div class="export-item" id="exportCSV"><i class="ti ti-file-text" aria-hidden="true"></i> Export CSV</div>
-          <div class="export-item" id="exportPDF"><i class="ti ti-file-type-pdf" aria-hidden="true"></i> Export PDF</div>
-        </div>
-      </div>
       <button class="btn btn-sm btn-primary" id="addBtn">
         <i class="ti ti-plus" aria-hidden="true"></i> Add application
       </button>
@@ -1467,31 +1431,9 @@ document.getElementById('addStrip').addEventListener('click', () => openModal(nu
 document.getElementById('fabAdd').addEventListener('click', () => openModal(null));
 document.getElementById('emptyAddBtn') && document.getElementById('emptyAddBtn').addEventListener('click', () => openModal(null));
 
-/* ── Export dropdown ── */
-document.getElementById('exportToggle').addEventListener('click', e => {
-  e.stopPropagation();
-  document.getElementById('exportMenu').classList.toggle('open');
-});
-document.addEventListener('click', () => document.getElementById('exportMenu').classList.remove('open'));
-
-/* ── CSV Export ── */
-document.getElementById('exportCSV').addEventListener('click', () => {
-  const headers = ['Company','Role','Status','Priority','Date','Salary','Location','Notes','URL'];
-  const rows = apps.map(a => [a.company,a.role,a.status,a.priority,a.date,a.salary,a.location,a.notes,a.url]
-    .map(v => `"${(v||'').replace(/"/g,'""')}"`).join(','));
-  const csv = [headers.join(','), ...rows].join('\n');
-  const blob = new Blob([csv], {type:'text/csv'});
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url; link.download = 'job-applications.csv'; link.click();
-  URL.revokeObjectURL(url);
-  document.getElementById('exportMenu').classList.remove('open');
-});
-
 /* ── PDF Export ── */
 document.getElementById('exportPDF').addEventListener('click', () => {
   if (!apps.length) { alert('No applications to export.'); return; }
-  document.getElementById('exportMenu').classList.remove('open');
 
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
