@@ -7,6 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.0.0/tabler-icons.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
 :root {
   --bg:        #0f1117;
@@ -51,29 +53,33 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 24px;
+  padding: 12px 16px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 .brand {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   letter-spacing: -0.02em;
 }
 .brand-icon {
-  width: 32px; height: 32px;
+  width: 30px; height: 30px;
   background: var(--accent);
-  border-radius: 8px;
+  border-radius: 7px;
   display: flex; align-items: center; justify-content: center;
   color: #fff;
-  font-size: 16px;
+  font-size: 15px;
+  flex-shrink: 0;
 }
-.topbar-right { display: flex; align-items: center; gap: 8px; }
+.topbar-right { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 
 /* ── Stat strip ── */
 .stats-strip {
@@ -81,22 +87,26 @@ body {
   grid-template-columns: repeat(5, 1fr);
   background: var(--surface);
   border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 .stat-cell {
-  padding: 14px 20px;
+  padding: 12px 14px;
   border-right: 1px solid var(--border);
+  min-width: 90px;
 }
 .stat-cell:last-child { border-right: none; }
 .stat-label {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.07em;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
   font-family: var(--mono);
+  white-space: nowrap;
 }
 .stat-num {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 600;
   font-family: var(--mono);
   letter-spacing: -0.02em;
@@ -110,8 +120,8 @@ body {
 .main {
   display: flex;
   flex-direction: column;
-  padding: 20px 24px;
-  gap: 14px;
+  padding: 14px 16px;
+  gap: 12px;
   max-width: 1400px;
   width: 100%;
   margin: 0 auto;
@@ -127,8 +137,7 @@ body {
 .search-wrap {
   position: relative;
   flex: 1;
-  min-width: 200px;
-  max-width: 320px;
+  min-width: 140px;
 }
 .search-wrap i {
   position: absolute;
@@ -141,7 +150,14 @@ body {
 }
 .search-wrap input {
   width: 100%;
-  padding: 8px 12px 8px 34px;
+  padding: 8px 10px 8px 34px;
+}
+.toolbar-filters {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  width: 100%;
 }
 .toolbar-right { display: flex; align-items: center; gap: 6px; margin-left: auto; }
 
@@ -156,12 +172,20 @@ input, select, textarea {
   padding: 7px 10px;
   outline: none;
   transition: border-color 0.15s;
+  -webkit-appearance: none;
+  appearance: none;
 }
 input:focus, select:focus, textarea:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(79,142,247,0.12);
 }
-select { cursor: pointer; }
+select {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237a82a0' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 28px;
+}
 textarea { resize: vertical; font-size: 13px; }
 
 .btn {
@@ -177,6 +201,8 @@ textarea { resize: vertical; font-size: 13px; }
   cursor: pointer;
   transition: background 0.12s, border-color 0.12s, transform 0.08s;
   white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 .btn:hover { background: var(--border); border-color: var(--border2); }
 .btn:active { transform: scale(0.97); }
@@ -186,7 +212,7 @@ textarea { resize: vertical; font-size: 13px; }
   color: #fff;
 }
 .btn-primary:hover { background: var(--accent2); border-color: var(--accent2); }
-.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-sm { padding: 6px 11px; font-size: 12px; }
 .btn-ghost {
   background: transparent;
   border-color: transparent;
@@ -196,6 +222,35 @@ textarea { resize: vertical; font-size: 13px; }
 .btn-danger { background: rgba(247,111,111,0.12); border-color: rgba(247,111,111,0.3); color: var(--danger); }
 .btn-danger:hover { background: rgba(247,111,111,0.22); }
 
+/* ── Export dropdown ── */
+.export-wrap { position: relative; }
+.export-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  padding: 6px;
+  min-width: 160px;
+  z-index: 300;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  display: none;
+}
+.export-menu.open { display: block; }
+.export-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--text);
+  transition: background 0.1s;
+}
+.export-item:hover { background: var(--border); }
+
 /* ── Table ── */
 .table-wrap {
   background: var(--surface);
@@ -203,23 +258,70 @@ textarea { resize: vertical; font-size: 13px; }
   border-radius: var(--radius-lg);
   overflow: hidden;
 }
-.table-scroll { overflow-x: auto; }
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* Mobile card view */
+.cards-list { display: none; }
+.app-card {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.app-card:last-child { border-bottom: none; }
+.app-card:active { background: var(--surface2); }
+.app-card.selected { background: rgba(79,142,247,0.08); }
+.card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.card-company { font-weight: 600; font-size: 14px; }
+.card-role { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+.card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.card-date { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.card-salary { font-family: var(--mono); font-size: 11px; color: var(--success); }
+.card-loc { font-size: 11px; color: var(--muted); }
+.card-notes {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.card-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
   font-size: 13px;
 }
-col.c-num    { width: 48px; }
-col.c-co     { width: 160px; }
-col.c-role   { width: 200px; }
-col.c-status { width: 110px; }
-col.c-pri    { width: 90px; }
-col.c-date   { width: 100px; }
-col.c-sal    { width: 130px; }
-col.c-loc    { width: 120px; }
+col.c-num    { width: 44px; }
+col.c-co     { width: 150px; }
+col.c-role   { width: 180px; }
+col.c-status { width: 105px; }
+col.c-pri    { width: 85px; }
+col.c-date   { width: 95px; }
+col.c-sal    { width: 120px; }
+col.c-loc    { width: 115px; }
 col.c-notes  { width: auto; }
-col.c-act    { width: 72px; }
+col.c-act    { width: 68px; }
 
 thead tr {
   background: var(--surface2);
@@ -291,7 +393,7 @@ td.clickable:hover { text-decoration: underline; text-decoration-color: var(--mu
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 3px 9px;
+  padding: 3px 8px;
   border-radius: 5px;
   font-size: 11px;
   font-weight: 500;
@@ -299,7 +401,7 @@ td.clickable:hover { text-decoration: underline; text-decoration-color: var(--mu
   letter-spacing: 0.03em;
   border: 1px solid transparent;
 }
-.badge-dot { width: 5px; height: 5px; border-radius: 50%; }
+.badge-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
 .badge-wishlist  { background: rgba(167,139,250,0.1); color: #c4b5fd; border-color: rgba(167,139,250,0.25); }
 .badge-wishlist .badge-dot  { background: #a78bfa; }
 .badge-applied   { background: rgba(79,142,247,0.1); color: #93b8fb; border-color: rgba(79,142,247,0.25); }
@@ -318,7 +420,7 @@ td.clickable:hover { text-decoration: underline; text-decoration-color: var(--mu
   font-size: 12px;
   font-family: var(--mono);
 }
-.pri-dot { width: 7px; height: 7px; border-radius: 50%; }
+.pri-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 .pri-high .pri-dot   { background: var(--danger); }
 .pri-medium .pri-dot { background: var(--warning); }
 .pri-low .pri-dot    { background: var(--success); }
@@ -347,15 +449,17 @@ tbody tr:hover .row-actions { opacity: 1; }
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 16px;
+  padding: 12px 16px;
   color: var(--muted);
   font-size: 13px;
   cursor: pointer;
   border-top: 1px solid var(--border);
   transition: background 0.1s, color 0.1s;
   background: var(--surface);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
-.add-strip:hover { background: var(--surface2); color: var(--text); }
+.add-strip:hover, .add-strip:active { background: var(--surface2); color: var(--text); }
 
 /* ── Empty state ── */
 .empty-state {
@@ -368,7 +472,7 @@ tbody tr:hover .row-actions { opacity: 1; }
   gap: 12px;
 }
 .empty-state i { font-size: 40px; opacity: 0.4; }
-.empty-state p { font-size: 14px; }
+.empty-state p { font-size: 14px; text-align: center; }
 
 /* ── Context menu ── */
 #ctxMenu {
@@ -387,7 +491,7 @@ tbody tr:hover .row-actions { opacity: 1; }
   display: flex;
   align-items: center;
   gap: 9px;
-  padding: 7px 10px;
+  padding: 8px 10px;
   border-radius: 6px;
   font-size: 13px;
   cursor: pointer;
@@ -414,37 +518,43 @@ tbody tr:hover .row-actions { opacity: 1; }
   inset: 0;
   background: rgba(0,0,0,0.6);
   display: none;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
   z-index: 500;
-  padding: 20px;
+  padding: 0;
   backdrop-filter: blur(2px);
 }
 .modal-overlay.open { display: flex; }
 .modal {
   background: var(--surface);
   border: 1px solid var(--border2);
-  border-radius: var(--radius-lg);
-  width: 500px;
-  max-width: 100%;
-  max-height: 90vh;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  width: 100%;
+  max-width: 560px;
+  max-height: 92vh;
   overflow-y: auto;
-  box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+  box-shadow: 0 -12px 40px rgba(0,0,0,0.5);
+}
+.modal-handle {
+  width: 36px; height: 4px;
+  background: var(--border2);
+  border-radius: 2px;
+  margin: 10px auto 0;
 }
 .modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18px 20px 14px;
+  padding: 14px 18px 12px;
   border-bottom: 1px solid var(--border);
 }
 .modal-title { font-size: 15px; font-weight: 600; }
-.modal-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; }
+.modal-body { padding: 16px 18px; display: flex; flex-direction: column; gap: 13px; }
 .modal-footer {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  padding: 14px 20px 18px;
+  padding: 12px 18px 16px;
   border-top: 1px solid var(--border);
 }
 .form-row { display: flex; flex-direction: column; gap: 5px; }
@@ -457,8 +567,8 @@ tbody tr:hover .row-actions { opacity: 1; }
   font-family: var(--mono);
 }
 .form-row input, .form-row select, .form-row textarea { width: 100%; }
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
 
 /* ── Formula bar ── */
 .formula-bar {
@@ -472,38 +582,40 @@ tbody tr:hover .row-actions { opacity: 1; }
   font-size: 12px;
 }
 .formula-ref {
-  padding: 6px 12px;
+  padding: 6px 10px;
   background: var(--surface2);
   color: var(--accent);
   border-right: 1px solid var(--border);
-  min-width: 64px;
+  min-width: 54px;
   text-align: center;
   font-weight: 500;
+  flex-shrink: 0;
 }
 .formula-fx {
-  padding: 6px 10px;
+  padding: 6px 8px;
   color: var(--muted);
   border-right: 1px solid var(--border);
   font-style: italic;
+  flex-shrink: 0;
 }
 .formula-val {
-  padding: 6px 12px;
+  padding: 6px 10px;
   color: var(--muted);
   flex: 1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-size: 11px;
 }
 
 /* ── Scrollbar ── */
-::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: var(--surface); }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
 /* ── Animations ── */
-@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-.modal { animation: fadeIn 0.15s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.modal { animation: fadeIn 0.18s ease; }
 tbody tr { animation: fadeIn 0.1s ease both; }
 
 /* ── Tooltip ── */
@@ -524,6 +636,111 @@ tbody tr { animation: fadeIn 0.1s ease both; }
   pointer-events: none;
   z-index: 100;
 }
+
+/* ── FAB (mobile add button) ── */
+.fab {
+  display: none;
+  position: fixed;
+  bottom: 22px;
+  right: 18px;
+  width: 52px; height: 52px;
+  background: var(--accent);
+  border-radius: 50%;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 200;
+  box-shadow: 0 4px 20px rgba(79,142,247,0.4);
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s, background 0.12s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.fab:active { transform: scale(0.93); }
+
+/* ── Mobile bottom sheet swipe handle ── */
+.modal-overlay { touch-action: none; }
+
+/* ═══════════════════════════════════
+   MOBILE  ≤ 640px
+═══════════════════════════════════ */
+@media (max-width: 640px) {
+
+  /* Hide desktop table, show cards */
+  .table-scroll { display: none; }
+  .cards-list { display: block; }
+
+  /* Hide formula bar on mobile */
+  .formula-bar { display: none; }
+
+  /* Topbar */
+  .topbar { padding: 10px 14px; }
+  .brand { font-size: 14px; }
+  .topbar-right .export-wrap { display: none; } /* hide export in topbar, use card actions */
+
+  /* Stats – horizontal scroll */
+  .stats-strip {
+    grid-template-columns: repeat(5, minmax(80px, 1fr));
+  }
+  .stat-cell { padding: 10px 12px; }
+  .stat-num { font-size: 18px; }
+
+  /* Main padding */
+  .main { padding: 10px 12px; gap: 10px; }
+
+  /* Toolbar */
+  .toolbar { gap: 6px; }
+  .search-wrap { min-width: 0; flex: 1 1 100%; }
+  .toolbar-filters { gap: 6px; }
+  .toolbar-filters select { flex: 1; min-width: 0; font-size: 12px; }
+
+  /* Modal becomes full bottom sheet */
+  .modal-overlay { align-items: flex-end; }
+  .modal {
+    border-radius: 16px 16px 0 0;
+    max-height: 96vh;
+  }
+  .form-grid, .form-grid-3 { grid-template-columns: 1fr; gap: 10px; }
+
+  /* FAB */
+  .fab { display: inline-flex; }
+  /* Hide header add button on small screens */
+  #addBtn { display: none; }
+
+  /* Add strip bigger touch target */
+  .add-strip { padding: 14px 16px; }
+
+  /* Row count */
+  #rowCount { display: none; }
+}
+
+/* ── Mid (641–900) ── */
+@media (min-width: 641px) and (max-width: 900px) {
+  .modal-overlay { align-items: center; padding: 20px; }
+  .modal { border-radius: var(--radius-lg); max-height: 90vh; }
+  .modal-handle { display: none; }
+  .form-grid-3 { grid-template-columns: 1fr 1fr; }
+
+  .stats-strip { grid-template-columns: repeat(5, 1fr); }
+  .stat-num { font-size: 20px; }
+
+  .table-scroll { display: block; }
+  .cards-list { display: none; }
+
+  col.c-sal  { display: none; }
+  col.c-loc  { display: none; }
+  th:nth-child(7), td:nth-child(7),
+  th:nth-child(8), td:nth-child(8) { display: none; }
+}
+
+/* ── Desktop ── */
+@media (min-width: 901px) {
+  .modal-overlay { align-items: center; padding: 20px; }
+  .modal { border-radius: var(--radius-lg); max-height: 90vh; }
+  .modal-handle { display: none; }
+}
 </style>
 </head>
 <body>
@@ -537,9 +754,16 @@ tbody tr { animation: fadeIn 0.1s ease both; }
       Job Tracker
     </div>
     <div class="topbar-right">
-      <button class="btn btn-sm" id="exportBtn" data-tip="Export as CSV">
-        <i class="ti ti-download" aria-hidden="true"></i> Export CSV
-      </button>
+      <div class="export-wrap" id="exportWrap">
+        <button class="btn btn-sm" id="exportToggle" data-tip="Export">
+          <i class="ti ti-download" aria-hidden="true"></i> Export
+          <i class="ti ti-chevron-down" aria-hidden="true" style="font-size:11px;margin-left:-2px"></i>
+        </button>
+        <div class="export-menu" id="exportMenu">
+          <div class="export-item" id="exportCSV"><i class="ti ti-file-text" aria-hidden="true"></i> Export CSV</div>
+          <div class="export-item" id="exportPDF"><i class="ti ti-file-type-pdf" aria-hidden="true"></i> Export PDF</div>
+        </div>
+      </div>
       <button class="btn btn-sm btn-primary" id="addBtn">
         <i class="ti ti-plus" aria-hidden="true"></i> Add application
       </button>
@@ -552,7 +776,7 @@ tbody tr { animation: fadeIn 0.1s ease both; }
   <!-- Main -->
   <div class="main">
 
-    <!-- Formula bar -->
+    <!-- Formula bar (desktop) -->
     <div class="formula-bar">
       <div class="formula-ref" id="cellRef">—</div>
       <div class="formula-fx">fx</div>
@@ -565,30 +789,34 @@ tbody tr { animation: fadeIn 0.1s ease both; }
         <i class="ti ti-search" aria-hidden="true"></i>
         <input type="text" id="searchInput" placeholder="Search company, role, notes…" />
       </div>
-      <select id="filterStatus" style="width:130px">
-        <option value="">All statuses</option>
-        <option value="wishlist">Wishlist</option>
-        <option value="applied">Applied</option>
-        <option value="interview">Interview</option>
-        <option value="offer">Offer</option>
-        <option value="rejected">Rejected</option>
-      </select>
-      <select id="filterPriority" style="width:120px">
-        <option value="">All priorities</option>
-        <option value="high">High priority</option>
-        <option value="medium">Medium priority</option>
-        <option value="low">Low priority</option>
-      </select>
-      <div class="toolbar-right">
-        <span style="font-size:12px;color:var(--muted);font-family:var(--mono)" id="rowCount">—</span>
-        <button class="btn btn-sm btn-ghost" id="clearFiltersBtn">
-          <i class="ti ti-filter-off" aria-hidden="true"></i> Clear
-        </button>
+      <div class="toolbar-filters">
+        <select id="filterStatus" style="width:130px">
+          <option value="">All statuses</option>
+          <option value="wishlist">Wishlist</option>
+          <option value="applied">Applied</option>
+          <option value="interview">Interview</option>
+          <option value="offer">Offer</option>
+          <option value="rejected">Rejected</option>
+        </select>
+        <select id="filterPriority" style="width:130px">
+          <option value="">All priorities</option>
+          <option value="high">High priority</option>
+          <option value="medium">Medium priority</option>
+          <option value="low">Low priority</option>
+        </select>
+        <div class="toolbar-right">
+          <span style="font-size:12px;color:var(--muted);font-family:var(--mono)" id="rowCount">—</span>
+          <button class="btn btn-sm btn-ghost" id="clearFiltersBtn">
+            <i class="ti ti-filter-off" aria-hidden="true"></i> Clear
+          </button>
+        </div>
       </div>
     </div>
 
     <!-- Table -->
     <div class="table-wrap">
+
+      <!-- Desktop table -->
       <div class="table-scroll">
         <table id="mainTable">
           <colgroup>
@@ -615,10 +843,20 @@ tbody tr { animation: fadeIn 0.1s ease both; }
         </table>
         <div id="emptyState" class="empty-state" style="display:none">
           <i class="ti ti-database-off" aria-hidden="true"></i>
-          <p>No applications match your filters.</p>
-          <button class="btn btn-sm" id="emptyAddBtn"><i class="ti ti-plus" aria-hidden="true"></i> Add one now</button>
+          <p>No applications yet.<br/>Add your first one below!</p>
+          <button class="btn btn-sm btn-primary" id="emptyAddBtn"><i class="ti ti-plus" aria-hidden="true"></i> Add application</button>
         </div>
       </div>
+
+      <!-- Mobile cards -->
+      <div class="cards-list" id="cardsList">
+        <!-- rendered by JS -->
+      </div>
+      <div id="emptyStateMobile" class="empty-state" style="display:none">
+        <i class="ti ti-database-off" aria-hidden="true"></i>
+        <p>No applications yet.<br/>Tap + to add your first!</p>
+      </div>
+
       <div class="add-strip" id="addStrip">
         <i class="ti ti-plus" aria-hidden="true" style="font-size:14px"></i>
         Add a new application…
@@ -627,6 +865,11 @@ tbody tr { animation: fadeIn 0.1s ease both; }
 
   </div>
 </div>
+
+<!-- FAB (mobile) -->
+<button class="fab" id="fabAdd" aria-label="Add application">
+  <i class="ti ti-plus" aria-hidden="true"></i>
+</button>
 
 <!-- Context menu -->
 <div id="ctxMenu" role="menu">
@@ -644,6 +887,7 @@ tbody tr { animation: fadeIn 0.1s ease both; }
 <!-- Modal -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-handle"></div>
     <div class="modal-header">
       <div class="modal-title" id="modalTitle">New application</div>
       <button class="btn btn-ghost btn-sm" id="modalClose"><i class="ti ti-x" aria-hidden="true"></i></button>
@@ -676,25 +920,24 @@ tbody tr { animation: fadeIn 0.1s ease both; }
         <div class="form-row"><label>Salary / range</label><input id="f-salary" placeholder="e.g. $140k–$180k"/></div>
         <div class="form-row"><label>Location</label><input id="f-location" placeholder="e.g. Remote / NYC"/></div>
       </div>
-      <div class="form-row"><label>Job URL</label><input id="f-url" placeholder="https://…"/></div>
+      <div class="form-row"><label>Job URL</label><input id="f-url" placeholder="https://…" inputmode="url"/></div>
       <div class="form-row"><label>Notes</label><textarea id="f-notes" rows="3" placeholder="Interview prep, contacts, deadlines…"></textarea></div>
     </div>
     <div class="modal-footer">
       <button class="btn" id="modalCancel">Cancel</button>
-      <button class="btn btn-primary" id="modalSave">Save application</button>
+      <button class="btn btn-primary" id="modalSave">Save</button>
     </div>
   </div>
 </div>
 
 <script>
-const STORAGE_KEY = 'jt_apps_v2';
+const STORAGE_KEY = 'jt_apps_v3';
 const COLS = ['company','role','status','priority','date','salary','location','notes'];
 let apps = [], sortCol = 'date', sortDir = -1, selectedId = null, ctxId = null;
 
 /* ── Storage ── */
 function load() {
   try { const r = localStorage.getItem(STORAGE_KEY); if (r) apps = JSON.parse(r); } catch(e) {}
-  if (!apps.length) { apps = sampleData(); save(); }
   render();
 }
 function save() {
@@ -708,18 +951,6 @@ function fmtDate(d) {
   if (!d) return '';
   const dt = new Date(d + 'T00:00:00');
   return dt.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'2-digit' });
-}
-
-/* ── Sample data ── */
-function sampleData() {
-  return [
-    { id:uid(), company:'Stripe', role:'Senior Frontend Engineer', status:'interview', priority:'high', date:'2026-05-10', salary:'$160k–$200k', location:'Remote', notes:'Technical screen May 28', url:'' },
-    { id:uid(), company:'Linear', role:'Product Engineer', status:'applied', priority:'high', date:'2026-05-15', salary:'$140k–$180k', location:'Remote', notes:'', url:'' },
-    { id:uid(), company:'Vercel', role:'DX Engineer', status:'wishlist', priority:'medium', date:'2026-05-18', salary:'', location:'Remote', notes:'Posted 2 days ago', url:'' },
-    { id:uid(), company:'Shopify', role:'Full Stack Developer', status:'rejected', priority:'medium', date:'2026-04-28', salary:'$130k', location:'Toronto', notes:'', url:'' },
-    { id:uid(), company:'Figma', role:'Software Engineer', status:'offer', priority:'high', date:'2026-05-01', salary:'$180k', location:'San Francisco', notes:'Deadline May 30', url:'' },
-    { id:uid(), company:'Notion', role:'Growth Engineer', status:'applied', priority:'low', date:'2026-05-12', salary:'$120k', location:'NYC', notes:'', url:'' },
-  ];
 }
 
 /* ── Filter & sort ── */
@@ -741,7 +972,7 @@ function getVisible() {
 }
 
 /* ── Render ── */
-function render() { renderStats(); renderTable(); }
+function render() { renderStats(); renderTable(); renderCards(); }
 
 function renderStats() {
   const t = apps.length;
@@ -751,13 +982,14 @@ function renderStats() {
   const rate = t ? Math.round(o / t * 100) : 0;
   document.getElementById('statsStrip').innerHTML = `
     <div class="stat-cell"><div class="stat-label">Total</div><div class="stat-num">${t}</div></div>
-    <div class="stat-cell"><div class="stat-label">Interviewing</div><div class="stat-num accent">${i}</div></div>
+    <div class="stat-cell"><div class="stat-label">Interview</div><div class="stat-num accent">${i}</div></div>
     <div class="stat-cell"><div class="stat-label">Offers</div><div class="stat-num success">${o}</div></div>
     <div class="stat-cell"><div class="stat-label">Rejected</div><div class="stat-num" style="color:var(--muted)">${r}</div></div>
-    <div class="stat-cell"><div class="stat-label">Offer rate</div><div class="stat-num ${rate>=20?'success':rate>=10?'warning':'danger'}">${rate}%</div></div>
+    <div class="stat-cell"><div class="stat-label">Offer %</div><div class="stat-num ${rate>=20?'success':rate>=10?'warning':'accent'}">${rate}%</div></div>
   `;
 }
 
+/* Desktop table */
 function renderTable() {
   const visible = getVisible();
   document.getElementById('rowCount').textContent = `${visible.length} row${visible.length!==1?'s':''}`;
@@ -793,10 +1025,10 @@ function renderTable() {
       <td style="color:var(--muted)" title="${esc(a.notes)}">${esc(a.notes) || '<span style="font-style:italic">—</span>'}</td>
       <td>
         <div class="row-actions">
-          <button class="row-act-btn" data-id="${a.id}" data-action="edit" aria-label="Edit row" title="Edit">
+          <button class="row-act-btn" data-id="${a.id}" data-action="edit" aria-label="Edit" title="Edit">
             <i class="ti ti-edit" aria-hidden="true"></i>
           </button>
-          <button class="row-act-btn del" data-id="${a.id}" data-action="delete" aria-label="Delete row" title="Delete">
+          <button class="row-act-btn del" data-id="${a.id}" data-action="delete" aria-label="Delete" title="Delete">
             <i class="ti ti-trash" aria-hidden="true"></i>
           </button>
         </div>
@@ -807,24 +1039,91 @@ function renderTable() {
   bindRowEvents();
 }
 
+/* Mobile cards */
+function renderCards() {
+  const visible = getVisible();
+  const list = document.getElementById('cardsList');
+  const emptyM = document.getElementById('emptyStateMobile');
+
+  if (!visible.length) {
+    list.innerHTML = '';
+    emptyM.style.display = 'flex';
+    return;
+  }
+  emptyM.style.display = 'none';
+
+  list.innerHTML = visible.map(a => `
+    <div class="app-card ${selectedId === a.id ? 'selected' : ''}" data-id="${a.id}">
+      <div class="card-top">
+        <div>
+          <div class="card-company">${esc(a.company) || '—'}</div>
+          <div class="card-role">${esc(a.role) || '—'}</div>
+        </div>
+        <span class="badge badge-${a.status}"><span class="badge-dot"></span>${a.status}</span>
+      </div>
+      <div class="card-meta">
+        <span class="pri-tag pri-${a.priority}"><span class="pri-dot"></span>${a.priority}</span>
+        ${a.date ? `<span class="card-date">${fmtDate(a.date)}</span>` : ''}
+        ${a.salary ? `<span class="card-salary">${esc(a.salary)}</span>` : ''}
+        ${a.location ? `<span class="card-loc">📍 ${esc(a.location)}</span>` : ''}
+      </div>
+      ${a.notes ? `<div class="card-notes">${esc(a.notes)}</div>` : ''}
+      <div class="card-actions">
+        <button class="btn btn-sm" data-id="${a.id}" data-action="edit">
+          <i class="ti ti-edit" aria-hidden="true"></i> Edit
+        </button>
+        <button class="btn btn-sm" data-id="${a.id}" data-action="status-cycle">
+          <i class="ti ti-refresh" aria-hidden="true"></i> Status
+        </button>
+        <button class="btn btn-sm btn-danger" style="margin-left:auto" data-id="${a.id}" data-action="delete">
+          <i class="ti ti-trash" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+  `).join('');
+
+  // Card events
+  document.querySelectorAll('.app-card').forEach(card => {
+    const id = card.dataset.id;
+    card.addEventListener('click', e => {
+      if (e.target.closest('button')) return;
+      selectedId = id;
+      updateFormulaBar(id);
+      document.querySelectorAll('.app-card').forEach(c => c.classList.toggle('selected', c.dataset.id === id));
+    });
+  });
+  document.querySelectorAll('.app-card button[data-action]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const id = btn.dataset.id, action = btn.dataset.action;
+      if (action === 'edit') openModal(id);
+      if (action === 'delete') deleteApp(id);
+      if (action === 'status-cycle') {
+        const a = apps.find(x => x.id === id);
+        if (!a) return;
+        const cycle = ['wishlist','applied','interview','offer','rejected'];
+        const next = cycle[(cycle.indexOf(a.status) + 1) % cycle.length];
+        a.status = next; save(); render();
+      }
+    });
+  });
+}
+
 function bindRowEvents() {
   document.querySelectorAll('#tbody tr').forEach(row => {
     const id = row.dataset.id;
-
     row.addEventListener('click', e => {
       if (e.target.closest('.row-act-btn') || e.target.closest('td.clickable')) return;
       selectedId = id;
       updateFormulaBar(id);
       document.querySelectorAll('#tbody tr').forEach(r => r.classList.toggle('selected', r.dataset.id === id));
     });
-
     row.addEventListener('dblclick', e => {
       const td = e.target.closest('td[data-col]');
       if (!td) { openModal(id); return; }
       if (['status','priority'].includes(td.dataset.col)) { openModal(id); return; }
       startInlineEdit(td, id, td.dataset.col);
     });
-
     row.addEventListener('contextmenu', e => { e.preventDefault(); showCtx(e, id); });
   });
 
@@ -860,14 +1159,11 @@ function startInlineEdit(td, id, col) {
   td.innerHTML = `<input class="inline-edit-input" value="${esc(orig)}" />`;
   const inp = td.querySelector('input');
   inp.focus(); inp.select();
-  function commit() {
-    a[col] = inp.value.trim();
-    save(); render();
-  }
+  function commit() { a[col] = inp.value.trim(); save(); render(); }
   inp.addEventListener('blur', commit);
   inp.addEventListener('keydown', e => {
-    if (e.key === 'Enter') { inp.blur(); }
-    if (e.key === 'Escape') { render(); }
+    if (e.key === 'Enter') inp.blur();
+    if (e.key === 'Escape') render();
   });
 }
 
@@ -877,11 +1173,10 @@ function showCtx(e, id) {
   const menu = document.getElementById('ctxMenu');
   menu.classList.add('open');
   const x = Math.min(e.clientX, window.innerWidth - 200);
-  const y = Math.min(e.clientY, window.innerHeight - 260);
+  const y = Math.min(e.clientY, window.innerHeight - 280);
   menu.style.left = x + 'px';
   menu.style.top = y + 'px';
 }
-
 document.getElementById('ctxMenu').addEventListener('click', e => {
   const item = e.target.closest('[data-action]'); if (!item) return;
   const action = item.dataset.action;
@@ -892,7 +1187,6 @@ document.getElementById('ctxMenu').addEventListener('click', e => {
   else if (action === 'delete') { deleteApp(ctxId); }
   closeCtx();
 });
-
 function closeCtx() { document.getElementById('ctxMenu').classList.remove('open'); }
 document.addEventListener('click', closeCtx);
 
@@ -906,7 +1200,6 @@ function deleteApp(id) {
 
 /* ── Modal ── */
 let editingId = null;
-
 function openModal(id) {
   editingId = id || null;
   const a = id ? apps.find(x => x.id === id)
@@ -922,9 +1215,8 @@ function openModal(id) {
   document.getElementById('f-url').value      = a.url || '';
   document.getElementById('f-notes').value    = a.notes || '';
   document.getElementById('modalOverlay').classList.add('open');
-  document.getElementById('f-company').focus();
+  setTimeout(() => document.getElementById('f-company').focus(), 100);
 }
-
 function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
 
 document.getElementById('modalSave').addEventListener('click', () => {
@@ -932,8 +1224,7 @@ document.getElementById('modalSave').addEventListener('click', () => {
   const role    = document.getElementById('f-role').value.trim();
   if (!company || !role) { alert('Company and role are required.'); return; }
   const a = {
-    id: editingId || uid(),
-    company, role,
+    id: editingId || uid(), company, role,
     status:   document.getElementById('f-status').value,
     priority: document.getElementById('f-priority').value,
     date:     document.getElementById('f-date').value,
@@ -974,10 +1265,18 @@ document.getElementById('clearFiltersBtn').addEventListener('click', () => {
 /* ── Add buttons ── */
 document.getElementById('addBtn').addEventListener('click', () => openModal(null));
 document.getElementById('addStrip').addEventListener('click', () => openModal(null));
-document.getElementById('emptyAddBtn').addEventListener('click', () => openModal(null));
+document.getElementById('fabAdd').addEventListener('click', () => openModal(null));
+document.getElementById('emptyAddBtn') && document.getElementById('emptyAddBtn').addEventListener('click', () => openModal(null));
 
-/* ── Export ── */
-document.getElementById('exportBtn').addEventListener('click', () => {
+/* ── Export dropdown ── */
+document.getElementById('exportToggle').addEventListener('click', e => {
+  e.stopPropagation();
+  document.getElementById('exportMenu').classList.toggle('open');
+});
+document.addEventListener('click', () => document.getElementById('exportMenu').classList.remove('open'));
+
+/* ── CSV Export ── */
+document.getElementById('exportCSV').addEventListener('click', () => {
   const headers = ['Company','Role','Status','Priority','Date','Salary','Location','Notes','URL'];
   const rows = apps.map(a => [a.company,a.role,a.status,a.priority,a.date,a.salary,a.location,a.notes,a.url]
     .map(v => `"${(v||'').replace(/"/g,'""')}"`).join(','));
@@ -987,15 +1286,162 @@ document.getElementById('exportBtn').addEventListener('click', () => {
   const link = document.createElement('a');
   link.href = url; link.download = 'job-applications.csv'; link.click();
   URL.revokeObjectURL(url);
+  document.getElementById('exportMenu').classList.remove('open');
+});
+
+/* ── PDF Export ── */
+document.getElementById('exportPDF').addEventListener('click', () => {
+  if (!apps.length) { alert('No applications to export.'); return; }
+  document.getElementById('exportMenu').classList.remove('open');
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+  // Header
+  doc.setFillColor(15, 17, 23);
+  doc.rect(0, 0, 297, 297, 'F');
+
+  doc.setFontSize(18);
+  doc.setTextColor(232, 234, 240);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Job Applications', 14, 18);
+
+  const now = new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+  doc.setFontSize(9);
+  doc.setTextColor(122, 130, 160);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Exported ${now}  ·  ${apps.length} application${apps.length !== 1 ? 's' : ''}`, 14, 25);
+
+  // Stats row
+  const statsY = 30;
+  const stats = [
+    { label: 'Total', val: apps.length },
+    { label: 'Interviewing', val: apps.filter(a => a.status === 'interview').length },
+    { label: 'Offers', val: apps.filter(a => a.status === 'offer').length },
+    { label: 'Rejected', val: apps.filter(a => a.status === 'rejected').length },
+    { label: 'Offer Rate', val: apps.length ? Math.round(apps.filter(a=>a.status==='offer').length/apps.length*100)+'%' : '0%' },
+  ];
+  const statW = 40, statH = 14;
+  stats.forEach((s, i) => {
+    const x = 14 + i * (statW + 4);
+    doc.setFillColor(24, 28, 39);
+    doc.roundedRect(x, statsY, statW, statH, 2, 2, 'F');
+    doc.setFontSize(7);
+    doc.setTextColor(122, 130, 160);
+    doc.text(s.label.toUpperCase(), x + 4, statsY + 5);
+    doc.setFontSize(13);
+    doc.setTextColor(232, 234, 240);
+    doc.setFont('helvetica', 'bold');
+    doc.text(String(s.val), x + 4, statsY + 11);
+    doc.setFont('helvetica', 'normal');
+  });
+
+  // Table
+  const statusColors = {
+    wishlist:  [167, 139, 250],
+    applied:   [79, 142, 247],
+    interview: [247, 169, 64],
+    offer:     [62, 207, 142],
+    rejected:  [247, 111, 111],
+  };
+  const priColors = {
+    high:   [247, 111, 111],
+    medium: [247, 169, 64],
+    low:    [62, 207, 142],
+  };
+
+  const rows = apps.map(a => [
+    a.company || '',
+    a.role || '',
+    a.status || '',
+    a.priority || '',
+    fmtDate(a.date) || '',
+    a.salary || '',
+    a.location || '',
+    a.notes ? (a.notes.length > 60 ? a.notes.slice(0, 60) + '…' : a.notes) : '',
+  ]);
+
+  doc.autoTable({
+    startY: statsY + statH + 6,
+    head: [['Company', 'Role', 'Status', 'Priority', 'Date', 'Salary', 'Location', 'Notes']],
+    body: rows,
+    theme: 'plain',
+    styles: {
+      font: 'helvetica',
+      fontSize: 8,
+      cellPadding: { top: 3, bottom: 3, left: 4, right: 4 },
+      textColor: [200, 204, 218],
+      lineColor: [42, 48, 72],
+      lineWidth: 0.3,
+      overflow: 'ellipsize',
+    },
+    headStyles: {
+      fillColor: [30, 35, 52],
+      textColor: [122, 130, 160],
+      fontStyle: 'bold',
+      fontSize: 7,
+      cellPadding: { top: 4, bottom: 4, left: 4, right: 4 },
+    },
+    alternateRowStyles: {
+      fillColor: [24, 28, 39],
+    },
+    bodyStyles: {
+      fillColor: [15, 17, 23],
+    },
+    columnStyles: {
+      0: { fontStyle: 'bold', cellWidth: 36 },
+      1: { cellWidth: 46 },
+      2: { cellWidth: 22 },
+      3: { cellWidth: 20 },
+      4: { cellWidth: 22 },
+      5: { cellWidth: 26 },
+      6: { cellWidth: 26 },
+      7: { cellWidth: 'auto' },
+    },
+    didDrawCell: (data) => {
+      // Color status text
+      if (data.section === 'body' && data.column.index === 2) {
+        const status = rows[data.row.index]?.[2];
+        const col = statusColors[status];
+        if (col) {
+          data.doc.setTextColor(...col);
+          data.doc.setFont('helvetica', 'bold');
+          data.doc.text(status, data.cell.x + 4, data.cell.y + data.cell.height / 2 + 2.5);
+          data.doc.setTextColor(200, 204, 218);
+          data.doc.setFont('helvetica', 'normal');
+        }
+      }
+      // Color priority text
+      if (data.section === 'body' && data.column.index === 3) {
+        const pri = rows[data.row.index]?.[3];
+        const col = priColors[pri];
+        if (col) {
+          data.doc.setTextColor(...col);
+          data.doc.text(pri, data.cell.x + 4, data.cell.y + data.cell.height / 2 + 2.5);
+          data.doc.setTextColor(200, 204, 218);
+        }
+      }
+    },
+    margin: { left: 14, right: 14 },
+  });
+
+  // Footer
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(7);
+    doc.setTextColor(80, 88, 110);
+    doc.text(`Job Tracker  ·  Page ${i} of ${pageCount}`, 14, doc.internal.pageSize.height - 6);
+  }
+
+  doc.save('job-applications.pdf');
 });
 
 /* ── Keyboard shortcuts ── */
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { closeModal(); closeCtx(); }
   if ((e.metaKey || e.ctrlKey) && e.key === 'n') { e.preventDefault(); openModal(null); }
-  if ((e.metaKey || e.ctrlKey) && e.key === 'f') {
-    e.preventDefault(); document.getElementById('searchInput').focus();
-  }
+  if ((e.metaKey || e.ctrlKey) && e.key === 'f') { e.preventDefault(); document.getElementById('searchInput').focus(); }
 });
 
 load();
